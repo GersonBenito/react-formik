@@ -1,173 +1,165 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Formik, Form, Field } from 'formik';
-import * as yup from 'yup';  
-import { validateSitioWeb } from '../../helper/Validaciones';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Boton from '../boton/Boton';
 import { useHistory } from 'react-router';
 import { Space }from 'antd';
 import 'antd/dist/antd.css';
 import { RedoOutlined, SaveOutlined }from '@ant-design/icons';
 
-
-
 const FormularioFormik = () => {
 
     const history = useHistory();
-    //simulacion de datos dinamicos, cuando sean datos de una base no sera necesarios estos datos
-    const dataEdit = {
-        nombres:'Gerson',
-        apellidos: 'Benito',
-        email: 'gersonbenito4@gmail.com',
-        edad: 22,
-        sitioWeb: 'www.sitio.com',
-        password: 'qwert',
-        confirmarPassword: 'qwert',
-    }
-
+    
     const initialValues = {
-        nombres:'',
-        apellidos: '',
+        username: '',
         email: '',
-        edad: '',
-        sitioWeb: '',
-        password: '',
-        confirmarPassword: '',
+        pais: '',
+        direccion: '',
     }
 
-    //cambiar cuando sean datos reales y dinamicos de una base de datos
-    const accion = 'add';
-
-    const validator = yup.object().shape({
-        nombres: yup.string().required('Campo nombres es requido'),
-        apellidos: yup.string().required('Campo apellidos es requerido'),
-        email: yup.string().email('Correo ingresado no es valido').required('Campo email es requerido'),
-        edad: yup.number().required('Campo edad es requerido').integer('La edad debe de ser un numero entero').positive('La edad debe de tener un numero positivo'),
-        sitioWeb: yup.string(),
-        password: yup.string()
-                    .min(4,'4 caracteres minimo')
-                    .max(8,'8 caracteres maximo')
-                    .required('Campo contraseña es requrido'),
-        confirmarPassword: yup.string().oneOf([yup.ref('password'), null], 'Las contraseñas no coinciden'),
-    })
-
-
-
-    const handleSubmit = (values) =>{
-        console.log(values);
-    }
-
-
-    const goToHome = () =>{
+    //regresar al home
+    const gotoHome = () =>{
         history.push('/');
+    }
+
+    //enviar datos
+    const sendForm = (values, resetForm) =>{
+        console.log('formulario enviado',values);
+        resetForm();
+    }
+
+    //validaciones del formulario
+    const validator = ({ username, email, pais, genero, direccion }) =>{
+
+        let errores = {};
+
+        //validar nombre de usuario
+        if(!username){
+
+            errores.username = 'Campo nombre es requerido';
+
+        }else if(!/^[a-zA-ZÀ-ÿ\s]{1,40}$/.test(username)){
+
+            errores.username = 'El nombre solo puede contener letras y espacios';
+        }
+
+        //validar correo
+        if(!email){
+
+            errores.email = 'Campo email es requerido';
+
+        }else if(!/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/.test(email)){
+
+            errores.email = 'Email ingresa es incorrecto';
+
+        }
+
+        //validar pais
+        if(!pais){
+            errores.pais = 'Campo pais es requerido';
+        }
+
+        //validar direccion 
+        if(!direccion){
+            errores.direccion = 'Campo direccion es requerido';
+        }
+
+        return errores;
     }
 
     return (
         <Container>
-
             <div className="titulo">
-                <p className='text-info'>Formulario con Formik y Yup</p>
+                <p className='text-info' >Formulario con Formik</p>
             </div>
-
             <div className="contenedorForm">
 
                 <Formik
-                    initialValues={accion === 'edit' ? dataEdit : initialValues}
-                    validationSchema={validator}
-                    onSubmit={handleSubmit}
+                    initialValues={ initialValues }
+                    validate={ validator }
+                    onSubmit={ (values, { resetForm }) =>sendForm(values, resetForm) }
                 >
                     {
-                        ({ errors, touched }) =>(
+                        ({ errors }) =>(
 
                             <Form>
                                 <div className="contenedor">
-                                    <div className="nombres">
 
-                                        <label>Nombres</label>
-                                        <Field className='form-control' name='nombres' />
-                                        {
-                                            errors.nombres && touched.nombres ? (<p className='text-danger' >{errors.nombres}</p>):null
-                                        }
-
-                                    </div>
-                                    <div className="apellidos">
-
-                                        <label>Apellidos</label>
-                                        <Field className='form-control' name='apellidos' />
-                                        {
-                                            errors.apellidos && touched.apellidos ? (<p className='text-danger'>{errors.apellidos}</p>):null
-                                        }
-
-                                    </div>
-                                    <div className="email">
-
-                                        <label>Eamil</label>
-                                        <Field className='form-control' name='email' />
-                                        {
-                                            errors.email && touched.email ? (<p className='text-danger'>{errors.email}</p>):null
-                                        }
-
-                                    </div>
-                                    <div className="edad">
-
-                                        <label>Edad</label>
-                                        <Field className='form-control' name='edad' type='number' />
-                                        {
-                                            errors.edad && touched.edad && (<p className='text-danger'>{errors.edad}</p>)
-                                        }
-
+                                    <div>
+                                        <label>Nombre de usuario</label>
+                                        <Field 
+                                            type='text'
+                                            name='username'
+                                            className='form-control'
+                                        />
+                                        <ErrorMessage
+                                            name='username'
+                                            component={()=>(<p className='text-danger'>{errors.username}</p>)}
+                                        />
                                     </div>
 
-                                    <div className="edad">
-
-                                        <label>Sitio web</label>
-                                        <Field className='form-control' name='sitioWeb' validate={validateSitioWeb} />
-                                        {
-                                            errors.sitioWeb && touched.sitioWeb && (<p className='text-danger'>{errors.sitioWeb}</p>)
-                                        }
-
+                                    <div>
+                                        <label>Correo</label>
+                                        <Field 
+                                            type='text'
+                                            name='email'
+                                            className='form-control'
+                                        />
+                                        <ErrorMessage 
+                                            name='email' 
+                                            component={()=>(<p className='text-danger'>{errors.email}</p>)}
+                                        />
                                     </div>
-                                    <div className="password">
 
-                                        <label>Contraseña</label>
-                                        <Field className='form-control' name='password' type='password' />
-                                        {
-                                            errors.password && touched.password ? (<p className='text-danger'>{errors.password}</p>):null
-                                        }
-
+                                    <div>
+                                        <label>Pais</label>
+                                        <Field name='pais' as='select' className='form-control' >
+                                            <option value="El Salvador">El Salvador</option>
+                                            <option value="Estados Unidos">Estados Unidos</option>
+                                            <option value="Mexico">Mexico</option>
+                                        </Field>
+                                        <ErrorMessage 
+                                            name='pais'
+                                            component={()=>( <p className='text-danger' >{errors.pais}</p> )}
+                                        />
                                     </div>
-                                    <div className="confirm">
 
-                                        <label>Confirmar contraseña</label>
-                                        <Field className='form-control' name='confirmarPassword' type='password' />
-                                        {
-                                            errors.confirmarPassword && touched.confirmarPassword ? (<p className='text-danger'>{errors.confirmarPassword}</p>):null
-                                        }
+                                    <div>
+
+                                        <label>Direccion</label>
+                                        <Field name='direccion' as='textarea' className='form-control' />
+                                        <ErrorMessage 
+                                            name='direccion'
+                                            component={()=>( <p className='text-danger'>{errors.direccion}</p> )}
+                                        />
 
                                     </div>
                                 </div>
+
+
                                 <div className="boton mt-3">
                                     <Space>
                                         <Boton 
-                                            name='Volver' 
-                                            type='button'
-                                            estilo='warning' 
+                                            name='Regresar' 
+                                            type='button' 
+                                            estilo='outline-warning' 
                                             evento='onClick' 
-                                            accion={goToHome}
+                                            accion={ gotoHome }
                                             icon={ <RedoOutlined /> } 
                                         />
                                         <Boton 
-                                            name='enviar' 
-                                            type='Submit'
-                                            estilo='info' 
+                                            name='Enviar' 
+                                            type='submit' 
+                                            estilo='outline-info' 
                                             icon={ <SaveOutlined /> } 
                                         />
-                                    </Space>   
+                                    </Space>
+
                                 </div>
                             </Form>
                         )
                     }
-
                 </Formik>
 
             </div>
@@ -176,18 +168,6 @@ const FormularioFormik = () => {
 }
 
 const Container = styled.div`
-    .contenedor{
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 20rem);
-        grid-gap: 10px;
-        justify-content: center;
-    }
-
-    .boton{
-        display: flex;
-        justify-content: center;
-    }
-
     .titulo{
         text-align: center;
     }
@@ -195,6 +175,24 @@ const Container = styled.div`
         margin: 0;
         font-family: fantasy;
         font-size: 35px;
+    }
+
+    .boton{
+        display: flex;
+        justify-content: center;
+    }
+
+    .contenedor{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 30rem);
+        justify-content: center;
+        grid-gap: 10px;
+    }
+
+    @media screen and (max-width: 768px) and (orientation: portrait){
+        .contenedor{
+            grid-template-columns: repeat(auto-fit, 18rem);
+        }
     }
 `;
 
